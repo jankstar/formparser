@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>formparser Module</h1>
+<p>This module is based on the Python library &quot;https://pypi.org/project/invoice2data/&quot; for extracting data from text.<br>
+For this purpose RegExp are used to determine the variable values from the text. The specification of the fields and the general defaults, e.g. substitution of characters is done in a YAML notation.</p>
+<p>This module provides the following functions:</p>
+<h2>Parse File</h2>
+<h3>YAML file for the specification of the form</h3>
+<p>Example</p>
+<h3>1 YAML File or data</h3>
+<pre class="prettyprint source"><code># -*- coding: utf-8 -*-
+name: PPP berlin-brandenburg-hamburg     #name of the file
+group: rechnung                          #group of the file
+test:
+    - PPP berlin-brandenburg-hamburg/i                                            #i - caseinsensitive
+    - '(IBAN: DE99 1111 2222 3333 4444 55)|(IBAN: DE99 0000 0000 1111 2222 00)/x' #x - trim spaces
+    - Rechnung
+options:
+    langu: de-DE
+    decimal_separator: ','
+    thousand_separator: '.'
+    group_separator: ', '                        #when working with several groups in RegExp, the groups are concatenated to each other
+    remove_accents: false
+    modifiers: gi                                #optional g - global, i - caseinsesitive, x - no-space
+    currency: EUR
+    date_formats: 'd.M.y'                        #formate for 'date-fns parse' https://date-fns.org/v2.28.0/docs/parse
+    replace:
+    - ['€', 'EUR']                               #replace characters
+    - ['|', ' ' ]
+    required_fields:
+    - invoice_number
+    - recipient_name
+    - recipient_addr
+fields:
+    invoice_amount_float:                        #at the end _float converts to a float number
+        regex: (\d+,\d+) +EUR Rechnungsbetrag
+        modifiers: gi                            #optional g - global, i - caseinsesitive, x - no-space
+    static_currency: EUR
+    invoice_date: Rechnungsdatum +(\d{1,2}\.\d{1,2}\.\d{2,4}) #at the end _date converts to a date object 
+    invoice_number: Rechnungsnummer +([\d\S]*)                #Attention _number remains a string
+    recipient_name: (Hans Müller)|(Marie Schmidt)
+    recipient_addr: (Hauptstraße +100).+[\s]+(1000 +Berlin)
+    IBAN: 
+      regex: 'IBAN:(\w{10,30})'
+      modifiers: gxi                             #this will find all IBAN as ',' separated string, no-space, caseinsesitive
+    BIC: 'BIC: (\w{8,11})'
+    static_sender_name: PPP berlin-brandenburg-hamburg
+    static_sender_addr: Hautpstraße, 100 - 10000 Berlin
+    subject: \s[.]*(MVZ Berlin)[.]*\s
+    static_category: Familie, Rechnung
+</code></pre>
+<h3>2 Read File and initialize ParsTemplate</h3>
+<p>Read the YAML file and initialize the ParsTemplate object:</p>
+<pre class="prettyprint source"><code>    //read and convert yaml-file to json-Object 
+    let lYamlFile = await fs.readFile(`${__dirname}/test/test.yaml`, 'utf-8')
+    let { data: yamlDat } = formparser.yaml2Object(lYamlFile);
+
+    //init PerseTemplate
+    let lPaTe = new ParseTemplate(yamlDat)
+</code></pre>
+<h3>3 Test text on template</h3>
+<p>It can be tested if the text is valid for the template, e.g. if it is the supplier or sender of the text:</p>
+<pre class="prettyprint source"><code>    let lText = await fs.readFile(`${__dirname}/test/ad89bea8-bd96-4cfd-942d-8d1e06cd9271000.jpg.txt`, 'utf-8');
+
+    //Test a text for validity (test)to the ParseTemplate
+    let lValide = lPaTe.performTest(lText)  //true or false
+    console.log(lValide) 
+</code></pre>
+<h3>4 Extract variables from the text</h3>
+<p>If the test of the template is positive, then the variables can be extracted according to the YAML specification:</p>
+<pre class="prettyprint source"><code>    if (lValide) {
+        //extract all fields of the ParseTemplate from the text
+        let { data: lData, regex: lRegEx, protocol: lProtocol, error: lError } = lPaTe.getFields(lText)
+        console.log({lData, lRegEx, lProtocol, lError})
+    }
+</code></pre>
+<p>Example of a response:</p>
+<pre class="prettyprint source"><code>{lData: {…}, lRegEx: {…}, lProtocol: {…}, lError: undefined}
+    lData: {invoice_amount_float: 32.16, currency: 'EUR', invoice_date: Sun Dec 05 20 …}
+        BIC: 'DAAEDEDDXXX'
+        category: 'Familie, Rechnung'
+        currency: 'EUR'
+        IBAN: 'DE99999966664444333322, DE53333344445555666677, DE99000000001111222200, DE99111122223333444455'
+        invoice_amount_float: 32.16
+        invoice_date: Sun Dec 05 2021 00:00:00 GMT+0100 (Central European Standard Time)
+        invoice_number: '6142/002497/'
+        recipient_addr: 'Hauptstraße 100, 1000 Berlin'
+        recipient_name: 'Hans Müller'
+        sender_addr: 'Hautpstraße, 100 - 10000 Berlin'
+        sender_name: 'PPP berlin-brandenburg-hamburg'
+        subject: 'MVZ Berlin'
+    lError: undefined
+    lProtocol: {invoice_amount_float: Array(0), currency: Array(0), invoice_date: Array(0), invoice_number: Array(0), recipient_name: Array(0), …}
+    lRegEx: {invoice_amount_float: Array(1), currency: Array(0), invoice_date: Array(1), invoice_number: Array(1), recipient_name: Array(1), …}
+</code></pre></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-formparser.html">formparser</a></li></ul><h3>Classes</h3><ul><li><a href="module-formparser-ParseOption.html">ParseOption</a></li><li><a href="module-formparser-ParseTemplate.html">ParseTemplate</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sun Feb 13 2022 17:23:41 GMT+0100 (Mitteleuropäische Normalzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

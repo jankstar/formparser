@@ -1,0 +1,40 @@
+# -*- coding: utf-8 -*-
+name: PPP berlin-brandenburg-hamburg     #name of the file
+group: rechnung                          #group of the file
+test:
+    - PPP berlin-brandenburg-hamburg/i                                            #i - caseinsensitive
+    - '(IBAN: DE99 1111 2222 3333 4444 55)|(IBAN: DE99 0000 0000 1111 2222 00)/x' #x - trim spaces
+    - Rechnung
+options:
+    langu: de-DE
+    decimal_separator: ','
+    thousand_separator: '.'
+    group_separator: ', '                        #when working with several groups in RegExp, the groups are concatenated to each other
+    remove_accents: false
+    modifiers: gi                                #optional g - global, i - caseinsesitive, x - no-space
+    currency: EUR
+    date_formats: 'd.M.y'                        #formate for 'date-fns parse' https://date-fns.org/v2.28.0/docs/parse
+    replace:
+    - ['€', 'EUR']                               #replace characters
+    - ['|', ' ' ]
+    required_fields:
+    - invoice_number
+    - recipient_name
+    - recipient_addr
+fields:
+    invoice_amount_float:                        #at the end _float converts to a float number
+        regex: (\d+,\d+) +EUR Rechnungsbetrag
+        modifiers: gi                            #optional g - global, i - caseinsesitive, x - no-space
+    static_currency: EUR
+    invoice_date: Rechnungsdatum +(\d{1,2}\.\d{1,2}\.\d{2,4}) #at the end _date converts to a date object 
+    invoice_number: Rechnungsnummer +([\d\S]*)                #Attention _number remains a string
+    recipient_name: (Hans Müller)|(Marie Schmidt)
+    recipient_addr: (Hauptstraße +100).+[\s]+(1000 +Berlin)
+    IBAN: 
+      regex: 'IBAN:(\w{10,30})'
+      modifiers: gxi                             #this will find all IBAN as ',' separated string, no-space, caseinsesitive
+    BIC: 'BIC: (\w{8,11})'
+    static_sender_name: PPP berlin-brandenburg-hamburg
+    static_sender_addr: Hautpstraße, 100 - 10000 Berlin
+    subject: \s[.]*(MVZ Berlin)[.]*\s
+    static_category: Familie, Rechnung

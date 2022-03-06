@@ -1,0 +1,14 @@
+/.env
+/node_modules
+/package-lock.json
+/data
+.DS_Store
+/static/avatare
+launch.json
+.vscode
+.deplyment
+/temp
+.deplyment
+*.PDF
+*.pdf
+/test/*.txt
