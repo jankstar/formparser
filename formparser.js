@@ -215,7 +215,9 @@ const formparser = (() => {
                                 }
                             }
 
-                            lRegEx[lRealName] = lMatch;
+                            if (lMatch) {
+                                lRegEx[lRealName] = lMatch;
+                            }
                             if (lMatch && lMatch.length && lMatch[0] && lMatch[0].length) {
 
                                 lData[lRealName] = ''
@@ -245,12 +247,12 @@ const formparser = (() => {
                         }
                         if (field.name.endsWith('float')) {
                             if (this.options.thousand_separator && lData[lRealName]) {
-                                let lRegEx = new RegExp(this.options.thousand_separator.replace('\.', '\\.'), 'g')
-                                lData[lRealName] = lData[lRealName].replace(lRegEx, '')
+                                let lRegExStep = new RegExp(this.options.thousand_separator.replace('\.', '\\.'), 'g')
+                                lData[lRealName] = lData[lRealName].replace(lRegExStep, '')
                             }
                             if (this.options.decimal_separator && this.options.decimal_separator != '.' && lData[lRealName]) {
-                                let lRegEx = new RegExp(this.options.decimal_separator.replace('\.', '\\.'), 'g')
-                                lData[lRealName] = lData[lRealName].replace(lRegEx, '.')
+                                let lRegExStep = new RegExp(this.options.decimal_separator.replace('\.', '\\.'), 'g')
+                                lData[lRealName] = lData[lRealName].replace(lRegExStep, '.')
                             }
                             let lfloat = parseFloat(lData[lRealName]) || 0.0
                             lData[lRealName] = lfloat
@@ -374,7 +376,7 @@ const formparser = (() => {
                 if (lValide) {
                     //extract all fields of the ParseTemplate from the text
                     let { data: lData, regex: lRegEx, protocol: lProtocol, error: lError } = lPaTe.parseData(lText)
-                    console.log({lData, lRegEx, lProtocol, lError})
+                    console.log(JSON.stringify({ lData, lRegEx, lProtocol, lError }, null, 2))
                 }
 
             } catch (err) {
