@@ -7,7 +7,7 @@
  *   If the test is positive, it is this form.
  *   With this, the sender and the type of form can be recognised.<br>
  *  2. option: <br>
- *   Contains general defaults and conversions, 
+ *   Contains general defaults and conversions,
  *   For example, decimal separators or date formatting.<br>
  *  3. fields: <br>
  *   Contains the fields to be parsed; here, "static" fields with * fixed values can be defined, or "static" fields with
@@ -18,14 +18,14 @@
  *    static_address: xyz <br>
  *    invoice_date: xyz <br>
  * <br>
- *   The fields can be defined via RegExp, whereby the 
+ *   The fields can be defined via RegExp, whereby the
  *   result fields must be marked as group "(...)".
- * 
+ *
  * @module formparser
  * @version 0.0.1
- * @license MIT 
+ * @license MIT
  * @author jankstar
- * 
+ *
  */
 const formparser = (() => {
     const fs = require('fs').promises;
@@ -39,7 +39,7 @@ const formparser = (() => {
             this.data = iValue.data || iValue.regex || ''
             this.modifiers = iValue.modifiers || ''
             let lRegEx = iValue.regex || ''
-            let lModifiers = this.modifiers.replace(/[^igm]/g, '') //at this point only igm 
+            let lModifiers = this.modifiers.replace(/[^igm]/g, '') //at this point only igm
             this.regex = new RegExp(lRegEx, lModifiers)
             this.format = iValue.format || ''
         }
@@ -52,7 +52,7 @@ const formparser = (() => {
      * @property {Array} replace to replace the character in the text
      * @property {String} decimal_separator
      * @property {String} thousand_separator
-     * @property {String} group_separator  i.e. ', ' if there are several groups of elements that should be linked together 
+     * @property {String} group_separator  i.e. ', ' if there are several groups of elements that should be linked together
      * @property {Boolean} remove_accents
      * @property {String} modifiers  i - case insensitive, g - global match, m - multiline, x - ignore space
      */
@@ -72,10 +72,10 @@ const formparser = (() => {
 
     /**
      * ParseTemplate is the class for managing the templates for parsing a form.
-     * @property {String} id uuid 
+     * @property {String} id uuid
      * @property {String} name the name for identification
      * @property {String} group the group classifies the template, e.g. invoices
-     * @property {Array} test Array if String for testing 
+     * @property {Array} test Array if String for testing
      * @property {ParseOption} Option are the general parameters of the parsing, e.g. format for date
      * @property {ParseField} fields Array of ParsField
      * @property {Array} protocol Array aof String
@@ -89,7 +89,7 @@ const formparser = (() => {
         constructor(iValue) {
             iValue = iValue || {}
             this.id = iValue.id || uuidv4()
-            this.name = iValue.name || ''   //Name des Parse-Template 
+            this.name = iValue.name || ''   //Name des Parse-Template
             this.group = iValue.group || '' //Formulargruppe
             this.test = iValue.test || []   //RegEx als Test, damit dieses Template gezogen wird
             iValue.options = iValue.options || {}
@@ -191,7 +191,7 @@ const formparser = (() => {
                 this.fields.forEach((field) => {
                     try {
                         lRealName = field.name.replace('static_', '')
-                        if (!field.name) { return } //we need name
+                        if (!lRealName) { return } //we need name
 
                         lData[lRealName] = ''
                         lProtocol[lRealName] = []
@@ -291,10 +291,10 @@ const formparser = (() => {
 
         /**
          * Returns an object(json) from a yaml string.
-         * @param {String} iYaml 
+         * @param {String} iYaml
          * @returns {ParseTemplate}
-         * 
-         * @example 
+         *
+         * @example
          * # -*- coding: utf-8 -*-
          * name: PPP berlin-brandenburg-hamburg     #name of the file
          * group: rechnung                          #group of the file
@@ -323,11 +323,11 @@ const formparser = (() => {
          *         regex: (\d+,\d+) +EUR Rechnungsbetrag
          *         modifiers: gi                            #optional g - global, i - caseinsesitive, x - no-space
          *     static_currency: EUR
-         *     invoice_date: Rechnungsdatum +(\d{1,2}\.\d{1,2}\.\d{2,4}) #at the end _date converts to a date object 
+         *     invoice_date: Rechnungsdatum +(\d{1,2}\.\d{1,2}\.\d{2,4}) #at the end _date converts to a date object
          *     invoice_number: Rechnungsnummer +([\d\S]*)                #Attention _number remains a string
          *     recipient_name: (Hans Müller)|(Marie Schmidt)
          *     recipient_addr: (Hauptstraße +100).+[\s]+(1000 +Berlin)
-         *     IBAN: 
+         *     IBAN:
          *       regex: 'IBAN:(\w{10,30})'
          *       modifiers: gxi                             #this will find all IBAN as ',' separated string, no-space, caseinsesitive
          *     BIC: 'BIC: (\w{8,11})'
@@ -335,7 +335,7 @@ const formparser = (() => {
          *     static_sender_addr: Hautpstraße, 100 - 10000 Berlin
          *     subject: \s[.]*(MVZ Berlin)[.]*\s
          *     static_category: Familie, Rechnung
-         * 
+         *
          */
         yaml2Object(iYaml) {
             let data = undefined;
@@ -355,11 +355,11 @@ const formparser = (() => {
          * 4. read test file for a form as text/string <br>
          * 5. checkt test whether the text fits the template <br>
          * 6. Extract the fields to the form
-         * 
+         *
          */
         async test() {
             try {
-                //read and convert yaml-file to json-Object 
+                //read and convert yaml-file to json-Object
                 let lYamlFile = await fs.readFile(`${__dirname}/test/test.yaml`, 'utf-8')
                 let { data: yamlDat } = formparser.yaml2Object(lYamlFile);
 
